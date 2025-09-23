@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SchoolAPI.Business.Extensions;
 using SchoolAPI.Business.Interfaces;
 using SchoolAPI.Data.Context;
 using SchoolAPI.Models.DTOs;
@@ -24,7 +23,17 @@ namespace SchoolAPI.Business.Services
                 .OrderBy(c => c.Title)
                 .ToListAsync();
 
-            return courses.Select(c => c.ToDto());
+            // Helt manuell mappning
+            return courses.Select(c => new CourseDto
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                Credits = c.Credits,
+                InstructorName = c.Instructor != null ?
+                    $"{c.Instructor.FirstName} {c.Instructor.LastName}" : "TBD",
+                EnrolledStudents = c.Enrollments?.Count ?? 0
+            });
         }
 
         public async Task<CourseDto?> GetCourseByIdAsync(int id)
@@ -34,7 +43,20 @@ namespace SchoolAPI.Business.Services
                 .Include(c => c.Enrollments)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
-            return course?.ToDto();
+            if (course == null)
+                return null;
+
+            // Manuell mappning
+            return new CourseDto
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                Credits = course.Credits,
+                InstructorName = course.Instructor != null ?
+                    $"{course.Instructor.FirstName} {course.Instructor.LastName}" : "TBD",
+                EnrolledStudents = course.Enrollments?.Count ?? 0
+            };
         }
 
         public async Task<CourseDto> CreateCourseAsync(CreateCourseDto createCourseDto)
@@ -46,7 +68,14 @@ namespace SchoolAPI.Business.Services
             if (!instructorExists)
                 throw new ArgumentException("Instructor not found");
 
-            var course = createCourseDto.ToEntity();
+            // Manuell mappning från DTO till Entity
+            var course = new Course
+            {
+                Title = createCourseDto.Title,
+                Description = createCourseDto.Description,
+                Credits = createCourseDto.Credits,
+                InstructorId = createCourseDto.InstructorId
+            };
 
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
@@ -56,7 +85,17 @@ namespace SchoolAPI.Business.Services
                 .Reference(c => c.Instructor)
                 .LoadAsync();
 
-            return course.ToDto();
+            // Manuell mappning tillbaka till DTO
+            return new CourseDto
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                Credits = course.Credits,
+                InstructorName = course.Instructor != null ?
+                    $"{course.Instructor.FirstName} {course.Instructor.LastName}" : "TBD",
+                EnrolledStudents = 0 // Nyskapat course har inga enrollments
+            };
         }
 
         public async Task<CourseDto?> UpdateCourseAsync(int id, CreateCourseDto updateCourseDto)
@@ -79,12 +118,28 @@ namespace SchoolAPI.Business.Services
                     throw new ArgumentException("Instructor not found");
             }
 
-            updateCourseDto.UpdateEntity(existingCourse);
+            // Manuell uppdatering av entity
+            existingCourse.Title = updateCourseDto.Title;
+            existingCourse.Description = updateCourseDto.Description;
+            existingCourse.Credits = updateCourseDto.Credits;
+            existingCourse.InstructorId = updateCourseDto.InstructorId;
+
             await _context.SaveChangesAsync();
 
-            return existingCourse.ToDto();
+            // Manuell mappning till DTO
+            return new CourseDto
+            {
+                Id = existingCourse.Id,
+                Title = existingCourse.Title,
+                Description = existingCourse.Description,
+                Credits = existingCourse.Credits,
+                InstructorName = existingCourse.Instructor != null ?
+                    $"{existingCourse.Instructor.FirstName} {existingCourse.Instructor.LastName}" : "TBD",
+                EnrolledStudents = existingCourse.Enrollments?.Count ?? 0
+            };
         }
 
+        // Resten av metoderna förblir samma...
         public async Task<bool> DeleteCourseAsync(int id)
         {
             var course = await _context.Courses

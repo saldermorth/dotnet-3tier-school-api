@@ -8,18 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "School API", Version = "v1" });
-
-    // Include XML comments if you want detailed API documentation
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath);
-    }
-});
+builder.Services.AddSwaggerGen();
 
 // Database Configuration
 builder.Services.AddDbContext<SchoolDbContext>(options =>
@@ -29,7 +18,6 @@ builder.Services.AddDbContext<SchoolDbContext>(options =>
     // Optional: Enable sensitive data logging in development
     if (builder.Environment.IsDevelopment())
     {
-        options.EnableSensitiveDataLogging();
         options.EnableDetailedErrors();
     }
 });
@@ -52,15 +40,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "School API V1");
-        c.RoutePrefix = string.Empty; // Serve Swagger UI at root
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
