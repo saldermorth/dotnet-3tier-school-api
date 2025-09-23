@@ -68,3 +68,6 @@ Direktanvändning av DbContext (inte Generisk Repository mönster)
    dotnet ef database update --project SchoolAPI.Data --startup-project SchoolAPI.API
 
 5. Starta projektet
+
+
+Gustav Berg
