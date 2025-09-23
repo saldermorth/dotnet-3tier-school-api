@@ -70,4 +70,4 @@ Direktanvändning av DbContext (inte Generisk Repository mönster)
 5. Starta projektet
 
 
-Gustav Berg
+by Gustav Berg
