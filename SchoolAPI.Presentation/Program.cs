@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SchoolAPI.Business.Interfaces;
 using SchoolAPI.Business.Services;
 using SchoolAPI.Data.Context;
+using SchoolAPI.Data.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<SchoolDbContext>(options =>
     if (builder.Environment.IsDevelopment())
     {
         options.EnableDetailedErrors();
+
     }
 });
 
